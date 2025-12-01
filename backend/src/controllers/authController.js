@@ -4,18 +4,14 @@ const { db } = require('../config/database');
 const {
   registerFailedLogin,
   resetFailedLogins,
-  requiresCaptcha
-} = require('../middleware/loginSecurity');
+
+} = require('../middleware/captchaMiddleware');
 
 
 const login = async (req, res) => {
-  const { username, password, captchaToken } = req.body;
+  const { username, password} = req.body;
 
-    // CAPTCHA obligatorio después de 3 fallos
-  if (requiresCaptcha(req) && !captchaToken) {
-    return res.status(400).json({ error: 'captcha' });
-  }
-  
+
   const query = `SELECT * FROM users WHERE username = ?`;
   
   db.query(query, [username], async (err, results) => {
