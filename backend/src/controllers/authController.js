@@ -1,19 +1,31 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db } = require('../config/database');
+const {
+  registerFailedLogin,
+  resetFailedLogins,
+  requiresCaptcha
+} = require('../middleware/loginSecurity');
 
-// VULNERABLE: Sin rate limiting para prevenir brute force
+
 const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, captchaToken } = req.body;
+
+    // CAPTCHA obligatorio después de 3 fallos
+  if (requiresCaptcha(req) && !captchaToken) {
+    return res.status(400).json({ error: 'captcha' });
+  }
   
   const query = `SELECT * FROM users WHERE username = ?`;
   
   db.query(query, [username], async (err, results) => {
     if (err) {
+          registerFailedLogin(req);
       return res.status(500).json({ error: 'Error en el servidor' });
     }
     
     if (results.length === 0) {
+          registerFailedLogin(req);
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
     
@@ -21,8 +33,12 @@ const login = async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
     
     if (!isValidPassword) {
+       registerFailedLogin(req);
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
+
+    // Login OK → reseteamos contador de fallos
+    resetFailedLogins(req);
     
     const token = jwt.sign(
       { id: user.id, username: user.username }, 
