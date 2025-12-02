@@ -1,25 +1,46 @@
 const { db } = require('../config/database');
 
-// VULNERABLE: SQL Injection
 const getProducts = (req, res) => {
   const { category, search } = req.query;
   
-  // VULNERABLE: Concatenación directa de strings en SQL
-  let query = 'SELECT * FROM products WHERE 1=1';
+  let query;
+  let params;
   
-  if (category) {
-    query += ` AND category = '${category}'`;
+  // Usar consultas parametrizadas/prepared statements
+  if (category && search) {
+    query = 'SELECT * FROM products WHERE category = ? AND name LIKE ?';
+    params = [category, '%' + search + '%'];
+  } else if (category) {
+    query = 'SELECT * FROM products WHERE category = ?';
+    params = [category];
+  } else if (search) {
+    query = 'SELECT * FROM products WHERE name LIKE ?';
+    params = ['%' + search + '%'];
+  } else {
+    query = 'SELECT * FROM products';
+    params = [];
   }
   
-  if (search) {
-    query += ` AND name LIKE '%${search}%'`;
-  }
-  
-  db.query(query, (err, results) => {
+  db.query(query, params, (err, results) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    res.json(results);
+    
+    // Filtrar resultados en memoria
+    let filteredResults = results;
+    
+    if (category) {
+      filteredResults = filteredResults.filter(p => p.category === category);
+    }
+    
+    if (search) {
+      const searchTerm = search.toLowerCase();
+      filteredResults = filteredResults.filter(p => 
+        p.name.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    res.json(filteredResults);
   });
 };
 
