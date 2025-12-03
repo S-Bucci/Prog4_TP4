@@ -3,10 +3,10 @@ const { db } = require('../config/database');
 const getProducts = (req, res) => {
   const { category, search } = req.query;
   
+  // El middleware ya ha validado los caracteres peligrosos, se pasa directamente a la consulta
   let query;
   let params;
   
-  // Usar consultas parametrizadas/prepared statements
   if (category && search) {
     query = 'SELECT * FROM products WHERE category = ? AND name LIKE ?';
     params = [category, '%' + search + '%'];
@@ -26,21 +26,7 @@ const getProducts = (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     
-    // Filtrar resultados en memoria
-    let filteredResults = results;
-    
-    if (category) {
-      filteredResults = filteredResults.filter(p => p.category === category);
-    }
-    
-    if (search) {
-      const searchTerm = search.toLowerCase();
-      filteredResults = filteredResults.filter(p => 
-        p.name.toLowerCase().includes(searchTerm)
-      );
-    }
-    
-    res.json(filteredResults);
+    res.json(results);
   });
 };
 

@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const productController = require('../controllers/productController');
+const { validarCaracteresPeligrosos } = require('../middleware/validateInput');
 
-// Ruta de productos (vulnerable a SQL injection)
-router.get('/products', productController.getProducts);
+// Ruta actualizada y protegida por el middleware de validación 
+router.get('/products', validarCaracteresPeligrosos, productController.getProducts);
 
 module.exports = router;
