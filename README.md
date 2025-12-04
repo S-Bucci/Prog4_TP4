@@ -1,3 +1,7 @@
+# Participantes
+
+Bucci Simón, Coletto Darío, Sisko Rodrigo y Zanconi Gianluca
+
 # Aplicación Vulnerable - Práctica de Seguridad Web
 
 Esta aplicación ha sido diseñada específicamente para enseñar sobre vulnerabilidades comunes en aplicaciones web. **NO DEBE SER USADA EN PRODUCCIÓN**.
