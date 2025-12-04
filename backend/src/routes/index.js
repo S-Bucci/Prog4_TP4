@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
+const csrf = require('csurf');
+
+// CSRF PROTECTION: Configurar middleware de protección CSRF usando sesión (no cookies)
+const csrfProtection = csrf({ cookie: false });
+
+// CSRF PROTECTION: Endpoint para obtener token CSRF único por sesión
+// El frontend debe llamar este endpoint y usar el token en requests sensibles
+router.get('/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // Importar todas las rutas
 const authRoutes = require('./auth');
 const productRoutes = require('./products');

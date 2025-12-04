@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
+const csrf = require('csurf');
 
 // Importar configuraciones y utilidades
 const { connectWithRetry } = require('./config/database');
@@ -27,7 +28,11 @@ app.use(session({
   secret: 'vulnerable-secret',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }
+    cookie: { 
+    secure: false,
+    httpOnly: true,
+    sameSite: 'strict'
+  }
 }));
 
 // Usar todas las rutas con prefijo /api
